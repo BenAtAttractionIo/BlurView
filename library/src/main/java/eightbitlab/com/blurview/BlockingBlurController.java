@@ -22,7 +22,7 @@ import android.view.ViewTreeObserver;
  * <p>
  * Blur is done in the main thread.
  */
-class BlockingBlurController implements BlurController {
+public class BlockingBlurController implements BlurController {
     private static final String TAG = BlockingBlurController.class.getSimpleName();
     //Bitmap size should be divisible by 16 to meet stride requirement
     private static final int ROUNDING_VALUE = 16;
@@ -33,7 +33,7 @@ class BlockingBlurController implements BlurController {
     private float roundingHeightScaleFactor = 1f;
 
     private BlurAlgorithm blurAlgorithm;
-    private Canvas internalCanvas;
+    private InternalCanvas internalCanvas;
 
     /**
      * Draw view hierarchy here.
@@ -79,7 +79,7 @@ class BlockingBlurController implements BlurController {
      *                 Can be Activity's root content layout (android.R.id.content)
      *                 or some of your custom root layouts.
      */
-    BlockingBlurController(@NonNull View blurView, @NonNull ViewGroup rootView) {
+    public BlockingBlurController(@NonNull View blurView, @NonNull ViewGroup rootView) {
         this.rootView = rootView;
         this.blurView = blurView;
         this.blurAlgorithm = new NoOpBlurAlgorithm();
@@ -117,7 +117,7 @@ class BlockingBlurController implements BlurController {
         }
         blurView.setWillNotDraw(false);
         allocateBitmap(measuredWidth, measuredHeight);
-        internalCanvas = new Canvas(internalBitmap);
+        internalCanvas = new InternalCanvas(internalBitmap);
         setBlurAutoUpdate(true);
     }
 
@@ -286,5 +286,15 @@ class BlockingBlurController implements BlurController {
         if (enabled) {
             blurView.getViewTreeObserver().addOnPreDrawListener(drawListener);
         }
+    }
+
+    /**
+     * If the canvas meets criteria, the current draw cycle is to gether the view behind the blur,
+     * do not draw child views.
+     * @param canvas
+     * @return true if the draw is laying out to be blurred, false if normal draw
+     */
+    public static boolean isInternalDraw(Canvas canvas) {
+        return canvas instanceof InternalCanvas;
     }
 }
